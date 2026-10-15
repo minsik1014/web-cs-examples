@@ -8,6 +8,10 @@
       * { box-sizing: border-box; }
       body { margin: 0; padding: 36px 24px; background: #f7f7f5; color: #252525; font-family: "Apple SD Gothic Neo", system-ui, sans-serif; line-height: 1.65; }
       main { max-width: 1080px; margin: auto; }
+      .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+      .home-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border: 1px solid #dcd8e1; border-radius: 8px; background: #fff; color: #624589; text-decoration: none; }
+      .home-link:hover { background: #eee9f4; }
+      .home-link:focus-visible { outline: 3px solid #a58abd; outline-offset: 3px; }
       .eyebrow { margin: 0; color: #735592; font-size: 14px; font-weight: 700; }
       h1 { margin: 6px 0 10px; font-size: clamp(25px, 4vw, 36px); line-height: 1.35; }
       .intro { margin: 0 0 24px; color: #666; }
@@ -33,7 +37,10 @@
   </head>
   <body>
     <main>
-      <p class="eyebrow">03 · CSS Cascade</p>
+      <div class="topbar">
+        <p class="eyebrow">03 · CSS Cascade</p>
+        <a class="home-link" href="../">← 예제 홈</a>
+      </div>
       <h1>CSS는 어떤 선언을 선택할까?</h1>
       <p class="intro">같은 HTML에 적용되는 CSS를 바꾸고, 브라우저가 선택한 실제 글자색을 비교해보세요.</p>
       <nav aria-label="비교할 예제">
