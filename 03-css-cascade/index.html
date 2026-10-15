@@ -47,6 +47,7 @@
         <button type="button" data-example="specificity" aria-pressed="true">명시도</button>
         <button type="button" data-example="order" aria-pressed="false">작성 순서</button>
         <button type="button" data-example="important" aria-pressed="false">!important</button>
+        <button type="button" data-example="inheritance" aria-pressed="false">상속</button>
       </nav>
       <section class="panel" aria-labelledby="example-title">
         <h2 id="example-title"></h2>
@@ -110,6 +111,18 @@
             '중요도는 명시도보다 먼저 비교합니다. important 선언이 ID 선택자의 일반 선언보다 우선합니다.',
           ],
         },
+        inheritance: {
+          title: '상속: 부모의 어떤 값이 전달될까?',
+          description: '부모의 글자색과 여백이 자식에게 모두 전달되는지 확인해보세요.',
+          html: '<div class="parent">\n  <div id="message" class="message">부모의 색을 물려받을까?</div>\n</div>',
+          before: '.parent {\n  color: purple;\n  margin: 24px;\n}',
+          after: '.parent {\n  color: purple;\n  margin: 24px;\n}\n\n.message {\n  color: blue;\n}',
+          action: ['자식 색상 직접 지정', '자식 색상 지정 제거'],
+          reason: [
+            '자식은 부모의 color를 상속하지만, margin은 상속하지 않아 초기값 0을 사용합니다. 점선은 부모 영역을 나타냅니다.',
+            '자식에 color를 직접 지정하면 부모의 보라색을 상속하는 대신 자신의 파란색 선언을 사용합니다. 자식 margin은 여전히 0입니다.',
+          ],
+        },
       };
 
       let currentExample = 'specificity';
@@ -121,22 +134,27 @@
       // 화면 설명과 별개로 실제 렌더링된 색을 읽음
       preview.addEventListener('load', () => {
         const target = preview.contentDocument.getElementById('message');
-        const color = preview.contentWindow.getComputedStyle(target).color;
+        const computedStyle = preview.contentWindow.getComputedStyle(target);
+        const color = computedStyle.color;
         const names = {
           'rgb(128, 0, 128)': '보라색',
           'rgb(0, 0, 255)': '파란색',
           'rgb(255, 0, 0)': '빨간색',
         };
         result.textContent = `적용된 글자색: ${names[color] || color} · ${color}`;
+        if (currentExample === 'inheritance') {
+          result.textContent += ` / 자식 margin: ${computedStyle.margin}`;
+        }
       });
 
       function renderExample() {
         const example = examples[currentExample];
+        const exampleHtml = example.html || html;
         const css = changed ? example.after : example.before;
         const state = changed ? 1 : 0;
         document.getElementById('example-title').textContent = example.title;
         document.getElementById('description').textContent = example.description;
-        document.getElementById('html-code').textContent = html;
+        document.getElementById('html-code').textContent = exampleHtml;
         document.getElementById('css-code').textContent = css;
         document.getElementById('reason').textContent = example.reason[state];
         changeButton.textContent = example.action[state];
@@ -145,7 +163,7 @@
           button.setAttribute('aria-pressed', String(button.dataset.example === currentExample));
         });
         // iframe 안에서 실행해 예제와 페이지 꾸밈용 CSS가 섞이지 않게 분리
-        preview.srcdoc = `<!doctype html><html lang="ko"><head><meta charset="UTF-8"><style>body { margin: 0; padding: 24px; font-family: system-ui, sans-serif; } p { margin: 32px 0; font-size: 26px; font-weight: 700; }</style><style>${css}</style></head><body>${html}</body></html>`;
+        preview.srcdoc = `<!doctype html><html lang="ko"><head><meta charset="UTF-8"><style>body { margin: 0; padding: 24px; font-family: system-ui, sans-serif; } p { margin: 32px 0; font-size: 26px; font-weight: 700; } .parent { border: 1px dashed #aaa; padding: 12px; font-size: 22px; font-weight: 700; }</style><style>${css}</style></head><body>${exampleHtml}</body></html>`;
       }
 
       document.querySelectorAll('[data-example]').forEach(button => {
