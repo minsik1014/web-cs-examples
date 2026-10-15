@@ -31,6 +31,7 @@
         transform: translateY(-0.2rem);
         box-shadow: 0 0.8rem 2rem rgb(0 0 0 / 8%);
       }
+      .example + .example { margin-top: 1rem; }
       .number { color: #7a5aa6; font-size: 0.9rem; font-weight: 700; }
       h2 { margin: 0.5rem 0; font-size: 1.25rem; }
       .example p { margin: 0; color: #666; line-height: 1.6; }
@@ -45,6 +46,11 @@
         <span class="number">02 · HTML Parser</span>
         <h2>HTML 오류 복구 전후 비교</h2>
         <p>잘못된 테이블 구조가 실제 DOM에서 어떻게 조정되는지 확인합니다.</p>
+      </a>
+      <a class="example" href="./03-css-cascade/">
+        <span class="number">03 · CSS Cascade</span>
+        <h2>CSS 우선순위 전후 비교</h2>
+        <p>명시도·작성 순서·!important를 바꾸며 실제 적용되는 색상을 확인합니다.</p>
       </a>
     </main>
   </body>

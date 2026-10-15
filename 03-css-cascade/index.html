@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSS 우선순위 비교 | 웹 속 CS 예제</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 36px 24px; background: #f7f7f5; color: #252525; font-family: "Apple SD Gothic Neo", system-ui, sans-serif; line-height: 1.65; }
+      main { max-width: 1080px; margin: auto; }
+      .eyebrow { margin: 0; color: #735592; font-size: 14px; font-weight: 700; }
+      h1 { margin: 6px 0 10px; font-size: clamp(25px, 4vw, 36px); line-height: 1.35; }
+      .intro { margin: 0 0 24px; color: #666; }
+      nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+      button { min-height: 44px; padding: 10px 16px; border: 1px solid #dcd8e1; border-radius: 8px; background: #fff; color: #343039; font: inherit; cursor: pointer; }
+      button[aria-pressed="true"], #change { background: #624589; border-color: #624589; color: #fff; }
+      button:focus-visible { outline: 3px solid #a58abd; outline-offset: 3px; }
+      .panel { padding: 24px; border: 1px solid #deded9; border-radius: 14px; background: #fff; }
+      h2 { margin: 0 0 6px; font-size: 22px; }
+      #description { margin: 0 0 20px; color: #666; }
+      .columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+      h3 { margin: 0 0 8px; color: #666; font-size: 14px; font-weight: 600; }
+      pre { margin: 0 0 18px; padding: 16px; overflow: auto; border: 1px solid #e6e4e9; border-radius: 8px; background: #faf9fc; font-size: 14px; line-height: 1.6; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+      iframe { display: block; width: 100%; height: 180px; border: 1px solid #e6e4e9; border-radius: 8px; background: #fff; }
+      .result { padding: 16px; margin-top: 12px; border-radius: 8px; background: #f7f5f9; }
+      #result { margin: 0 0 8px; font-weight: 700; }
+      #reason { margin: 0; font-size: 14px; color: #555; }
+      .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+      .note { margin: 18px 0 0; font-size: 13px; color: #777; }
+      @media (max-width: 680px) { body { padding: 24px 16px; } .panel { padding: 16px; } .columns { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">03 · CSS Cascade</p>
+      <h1>CSS는 어떤 선언을 선택할까?</h1>
+      <p class="intro">같은 HTML에 적용되는 CSS를 바꾸고, 브라우저가 선택한 실제 글자색을 비교해보세요.</p>
+      <nav aria-label="비교할 예제">
+        <button type="button" data-example="specificity" aria-pressed="true">명시도</button>
+        <button type="button" data-example="order" aria-pressed="false">작성 순서</button>
+        <button type="button" data-example="important" aria-pressed="false">!important</button>
+      </nav>
+      <section class="panel" aria-labelledby="example-title">
+        <h2 id="example-title"></h2>
+        <p id="description"></p>
+        <div class="columns">
+          <div>
+            <h3>HTML</h3>
+            <pre><code id="html-code"></code></pre>
+            <h3>CSS</h3>
+            <pre><code id="css-code"></code></pre>
+          </div>
+          <div>
+            <h3>실제 결과</h3>
+            <iframe id="preview" title="CSS 적용 결과"></iframe>
+            <div class="result">
+              <p id="result" role="status"></p>
+              <p id="reason"></p>
+            </div>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="change" type="button"></button>
+          <button id="reset" type="button">초기화</button>
+        </div>
+        <p class="note">모든 예제는 작성자 스타일이며, 별도의 레이어·스코프·애니메이션·트랜지션을 사용하지 않습니다.</p>
+      </section>
+    </main>
+    <script>
+      const html = '<p id="message" class="message">어떤 색으로 보일까?</p>';
+      const examples = {
+        specificity: {
+          title: '명시도: ID 선택자와 클래스 선택자',
+          description: '아래에 작성된 빨간색 선언이 보라색 선언을 이길 수 있을까요?',
+          before: '#message {\n  color: purple;\n}\n\n.message {\n  color: blue;\n}\n\np {\n  color: red;\n}',
+          after: '.message {\n  color: blue;\n}\n\np {\n  color: red;\n}',
+          action: ['ID 선택자 제외', 'ID 선택자 복원'],
+          reason: [
+            'ID 선택자 (1, 0, 0)의 명시도가 더 높으므로 보라색이 선택됩니다.',
+            'ID 규칙을 제외하면 클래스 선택자 (0, 1, 0)가 태그 선택자 (0, 0, 1)보다 우선합니다.',
+          ],
+        },
+        order: {
+          title: '작성 순서: 같은 선택자를 두 번 작성하면?',
+          description: '선택자와 중요도는 그대로 두고, 선언 순서만 바꿔보세요.',
+          before: '.message {\n  color: blue;\n}\n\n.message {\n  color: red;\n}',
+          after: '.message {\n  color: red;\n}\n\n.message {\n  color: blue;\n}',
+          action: ['작성 순서 뒤집기', '원래 순서로 복원'],
+          reason: [
+            '앞선 조건과 명시도가 같으므로 나중에 작성한 빨간색 선언이 선택됩니다.',
+            '순서를 바꾸면 나중에 작성된 파란색 선언이 선택됩니다.',
+          ],
+        },
+        important: {
+          title: '!important: 명시도 비교보다 먼저',
+          description: '클래스 선언에 !important를 붙이면 결과는 어떻게 달라질까요?',
+          before: '#message {\n  color: purple;\n}\n\n.message {\n  color: blue;\n}',
+          after: '#message {\n  color: purple;\n}\n\n.message {\n  color: blue !important;\n}',
+          action: ['!important 적용', '!important 제거'],
+          reason: [
+            '두 선언이 모두 일반 선언이므로 명시도가 높은 ID 선택자의 보라색이 선택됩니다.',
+            '중요도는 명시도보다 먼저 비교합니다. important 선언이 ID 선택자의 일반 선언보다 우선합니다.',
+          ],
+        },
+      };
+
+      let currentExample = 'specificity';
+      let changed = false;
+      const preview = document.getElementById('preview');
+      const result = document.getElementById('result');
+      const changeButton = document.getElementById('change');
+
+      // 화면 설명과 별개로 실제 렌더링된 색을 읽음
+      preview.addEventListener('load', () => {
+        const target = preview.contentDocument.getElementById('message');
+        const color = preview.contentWindow.getComputedStyle(target).color;
+        const names = {
+          'rgb(128, 0, 128)': '보라색',
+          'rgb(0, 0, 255)': '파란색',
+          'rgb(255, 0, 0)': '빨간색',
+        };
+        result.textContent = `적용된 글자색: ${names[color] || color} · ${color}`;
+      });
+
+      function renderExample() {
+        const example = examples[currentExample];
+        const css = changed ? example.after : example.before;
+        const state = changed ? 1 : 0;
+        document.getElementById('example-title').textContent = example.title;
+        document.getElementById('description').textContent = example.description;
+        document.getElementById('html-code').textContent = html;
+        document.getElementById('css-code').textContent = css;
+        document.getElementById('reason').textContent = example.reason[state];
+        changeButton.textContent = example.action[state];
+        result.textContent = '결과 확인 중…';
+        document.querySelectorAll('[data-example]').forEach(button => {
+          button.setAttribute('aria-pressed', String(button.dataset.example === currentExample));
+        });
+        // iframe 안에서 실행해 예제와 페이지 꾸밈용 CSS가 섞이지 않게 분리
+        preview.srcdoc = `<!doctype html><html lang="ko"><head><meta charset="UTF-8"><style>body { margin: 0; padding: 24px; font-family: system-ui, sans-serif; } p { margin: 32px 0; font-size: 26px; font-weight: 700; }</style><style>${css}</style></head><body>${html}</body></html>`;
+      }
+
+      document.querySelectorAll('[data-example]').forEach(button => {
+        button.addEventListener('click', () => {
+          currentExample = button.dataset.example;
+          changed = false;
+          renderExample();
+        });
+      });
+      changeButton.addEventListener('click', () => {
+        changed = !changed;
+        renderExample();
+      });
+      document.getElementById('reset').addEventListener('click', () => {
+        changed = false;
+        renderExample();
+      });
+      renderExample();
+    </script>
+  </body>
+</html>
