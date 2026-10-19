@@ -41,16 +41,10 @@
     <pre><code id="code"></code></pre>
     <p id="explanation" role="status"></p>
   </section>
-  <section class="panel" aria-labelledby="measure">
-    <h2 id="measure">내부 작업은 개발자 도구에서 확인</h2>
-    <ol>
-      <li>Chrome 개발자 도구의 Performance 패널을 열고 녹화를 시작합니다.</li>
-      <li>비교할 버튼 하나를 누른 뒤 녹화를 중지합니다.</li>
-      <li>Main 트랙을 확대해 Recalculate Style, Layout, Paint 등의 이벤트를 확인합니다.</li>
-      <li>초기화한 뒤 새 녹화를 시작해 다른 변경과 비교합니다.</li>
-    </ol>
-    <p>Rendering 패널의 Paint flashing도 사용할 수 있습니다. 단, 깜박임은 다시 그려지는 영역을 보여주는 도구이지 정확한 소요 시간을 재는 도구는 아닙니다.</p>
-    <p class="note">이 페이지는 렌더링 단계나 실행 시간을 자동 측정하지 않습니다. 화면 변화만으로 합성 전용 처리를 증명할 수 없으며, transform의 실제 처리는 브라우저와 레이어 구성에 따라 달라집니다. 클릭 UI 자체에서도 렌더링 작업이 생기므로 예제 상자 영역과 관련된 기록을 구분하세요.</p>
+  <section class="panel" aria-labelledby="observation">
+    <h2 id="observation">이 예제에서 확인할 것</h2>
+    <p>색상 변경은 배치를 유지하고, 너비 변경은 이웃 상자를 밀어냅니다. transform은 원래 배치 공간을 유지한 채 상자를 시각적으로 이동시킵니다.</p>
+    <p class="note">이 예제는 화면과 배치의 차이를 비교합니다. 렌더링 단계나 실행 시간을 측정하지 않으며, 화면 변화만으로 합성 단계에서만 처리됐다고 판단할 수는 없습니다.</p>
   </section>
 </main>
 <script>
@@ -62,7 +56,7 @@
   const reasons = {
     color: '배경색만 바뀝니다. 이 변경 자체는 배치 계산 없이 다시 그리는 작업이 필요할 수 있습니다.',
     width: '너비가 늘어나면서 이웃 상자의 위치도 바뀝니다. 배치 재계산이 필요한 경우입니다.',
-    transform: '보라색 상자는 이동하지만 이웃 상자의 배치 위치는 그대로입니다. 합성만으로 처리되는지는 별도로 기록을 확인하세요.'
+    transform: '상자가 시각적으로 이동하지만 이웃 상자의 배치 위치는 그대로입니다. 원래 배치 공간은 유지됩니다.'
   };
   function update(kind) {
     const color = state.color ? '#2563eb' : '#7350a2';
