@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSS 변경과 렌더링 | 웹 속 CS 예제</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px 20px; background: #f7f7f5; color: #252525; font-family: "Apple SD Gothic Neo", system-ui, sans-serif; line-height: 1.65; }
+    main { max-width: 960px; margin: auto; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    a { color: #624589; }
+    h1 { font-size: clamp(24px, 5vw, 36px); margin: 16px 0 8px; }
+    .panel { padding: 20px; background: white; border: 1px solid #deded9; border-radius: 12px; margin: 20px 0; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+    button { min-height: 44px; padding: 8px 14px; background: white; border: 1px solid #bcb5c6; border-radius: 8px; font: inherit; cursor: pointer; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #9674bc; outline-offset: 3px; }
+    button[aria-pressed="true"] { background: #624589; color: white; }
+    iframe { display: block; width: 100%; height: 190px; border: 1px solid #deded9; margin-top: 20px; border-radius: 8px; }
+    pre { padding: 16px; background: #f7f5f9; overflow: auto; }
+    .note { color: #666; font-size: 14px; }
+    li + li { margin-top: 8px; }
+  </style>
+</head>
+<body>
+<main>
+  <header><span>04 · Rendering</span><a href="../">← 예제 홈</a></header>
+  <h1>같은 CSS 변경, 다른 브라우저 작업</h1>
+  <p>버튼 하나씩 눌러 색상·너비·이동을 비교해보세요. 변경은 누적되며 초기화로 되돌릴 수 있습니다.</p>
+  <section class="panel" aria-labelledby="experiment">
+    <h2 id="experiment">직접 바꿔보기</h2>
+    <div class="controls">
+      <button type="button" data-kind="color" aria-pressed="false">색상 변경</button>
+      <button type="button" data-kind="width" aria-pressed="false">너비 변경</button>
+      <button type="button" data-kind="transform" aria-pressed="false">위치 이동</button>
+      <button type="button" id="reset">초기화</button>
+    </div>
+    <iframe id="preview" title="상자와 이웃 요소의 배치 비교"></iframe>
+    <p class="note">점선은 초기 위치와 크기입니다. 주황색 이웃 상자가 밀리는지도 확인하세요.</p>
+    <h3>현재 적용한 CSS</h3>
+    <pre><code id="code"></code></pre>
+    <p id="explanation" role="status"></p>
+  </section>
+  <section class="panel" aria-labelledby="measure">
+    <h2 id="measure">내부 작업은 개발자 도구에서 확인</h2>
+    <ol>
+      <li>Chrome 개발자 도구의 Performance 패널을 열고 녹화를 시작합니다.</li>
+      <li>비교할 버튼 하나를 누른 뒤 녹화를 중지합니다.</li>
+      <li>Main 트랙을 확대해 Recalculate Style, Layout, Paint 등의 이벤트를 확인합니다.</li>
+      <li>초기화한 뒤 새 녹화를 시작해 다른 변경과 비교합니다.</li>
+    </ol>
+    <p>Rendering 패널의 Paint flashing도 사용할 수 있습니다. 단, 깜박임은 다시 그려지는 영역을 보여주는 도구이지 정확한 소요 시간을 재는 도구는 아닙니다.</p>
+    <p class="note">이 페이지는 렌더링 단계나 실행 시간을 자동 측정하지 않습니다. 화면 변화만으로 합성 전용 처리를 증명할 수 없으며, transform의 실제 처리는 브라우저와 레이어 구성에 따라 달라집니다. 클릭 UI 자체에서도 렌더링 작업이 생기므로 예제 상자 영역과 관련된 기록을 구분하세요.</p>
+  </section>
+</main>
+<script>
+  const preview = document.querySelector('#preview');
+  const code = document.querySelector('#code');
+  const explanation = document.querySelector('#explanation');
+  const buttons = [...document.querySelectorAll('[data-kind]')];
+  const state = { color: false, width: false, transform: false };
+  const reasons = {
+    color: '배경색만 바뀝니다. 이 변경 자체는 배치 계산 없이 다시 그리는 작업이 필요할 수 있습니다.',
+    width: '너비가 늘어나면서 이웃 상자의 위치도 바뀝니다. 배치 재계산이 필요한 경우입니다.',
+    transform: '보라색 상자는 이동하지만 이웃 상자의 배치 위치는 그대로입니다. 합성만으로 처리되는지는 별도로 기록을 확인하세요.'
+  };
+  function update(kind) {
+    const color = state.color ? '#2563eb' : '#7350a2';
+    const width = state.width ? '150px' : '90px';
+    const transform = state.transform ? 'translateX(36px)' : 'none';
+    const target = preview.contentDocument.querySelector('.box');
+    target.style.backgroundColor = color;
+    target.style.width = width;
+    target.style.transform = transform;
+    code.textContent = `.box {\n  background-color: ${color};\n  width: ${width};\n  transform: ${transform};\n}`;
+    buttons.forEach(button => button.setAttribute('aria-pressed', String(state[button.dataset.kind])));
+    explanation.textContent = kind ? reasons[kind] : '초기 상태입니다. 버튼 하나씩 눌러 비교해보세요.';
+  }
+  preview.addEventListener('load', () => update());
+  preview.srcdoc = `<!doctype html><html lang="ko"><head><meta charset="UTF-8"><style>
+    *{box-sizing:border-box}body{margin:0;padding:24px 12px;font:14px system-ui;background:white}
+    .stage{position:relative;display:flex;align-items:flex-start;gap:16px;padding-top:14px}
+    .origin{position:absolute;left:0;top:14px;width:90px;height:90px;border:2px dashed #555;pointer-events:none;z-index:2}
+    .box{flex-shrink:0;width:90px;height:90px;background:#7350a2;color:white;display:grid;place-items:center}
+    .neighbor{flex-shrink:0;width:96px;height:90px;background:#ffe3b5;display:grid;place-items:center;color:#593b10}
+    </style></head><body><div class="stage"><div class="origin" aria-hidden="true"></div><div class="box">변경 대상</div><div class="neighbor">이웃 상자</div></div></body></html>`;
+  buttons.forEach(button => button.addEventListener('click', () => {
+    const kind = button.dataset.kind;
+    state[kind] = !state[kind];
+    update(kind);
+  }));
+  document.querySelector('#reset').addEventListener('click', () => {
+    Object.keys(state).forEach(key => state[key] = false);
+    update();
+  });
+</script>
+</body>
+</html>
