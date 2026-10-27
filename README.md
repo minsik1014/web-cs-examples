@@ -6,3 +6,4 @@
 
 - [HTML 파서 오류 복구](./02-html-parser/error-recovery/)
 - [CSS 명시도·작성 순서·!important 비교](./03-css-cascade/)
+- [JavaScript 실행 과정: 콜 스택·호이스팅·스코프·클로저](./05-javascript-execution/)
